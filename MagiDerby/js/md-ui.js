@@ -843,7 +843,8 @@
     /* ★★ 2026-10-24 枠順の発表前は仮の番号の写し（N.betRace）で買う。オッズはまだ無い */
     race = N.betRace(race);
     /* ★★ 2026-10-28 ご指定「馬券購入で初期入力値を0に」（u: 100 → 0。金額のボタンで足していく） */
-    U.slip = { rid: rid, race: race, ex: U.rid === rid && !race.pre ? U.ex : null, type: "win", mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 0, lines: [] };
+    /* ★★ 2026-11-19 券種ははじめ選ばない（type: null）＝単勝のまま気づかずに買うのを防ぐ */
+    U.slip = { rid: rid, race: race, ex: U.rid === rid && !race.pre ? U.ex : null, type: null, tyOpen: false, mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 0, lines: [] };
     openSheet('<div id="slip"></div>', "slip");
     paintSlip();
     if (!race.pre) N.odds(rid).then((ex) => { if (U.slip && U.slip.rid === rid) { U.slip.ex = ex; paintSlip(); } }).catch(() => {});
@@ -851,7 +852,7 @@
   /* 枠順の発表前の組を馬名で（"ダノン−ロブチェン"） */
   function preStr(race, type, c) { const nm = (p) => { const e = (race.entries || []).find((x) => x.pno === p); return e ? e.nm : "?"; }; return c.map(nm).join(B.TYPE[type].ord ? "→" : "−"); }
   function slipCombos() {
-    const S = U.slip; if (!S) return [];
+    const S = U.slip; if (!S || !S.type) return [];
     const sel = S.mode === "box" ? { pick: S.pick } : S.mode === "nag" ? { axis: S.axis, part: S.part, pos: S.pos } : { cols: S.cols };
     let cb = B.expand(S.type, S.mode, sel);
     if (S.race) cb = cb.filter((c) => B.comboOk(S.race, S.type, c));
@@ -866,19 +867,60 @@
     }
     return '<div class="grid">' + ents.map((e) => { const o = N.winOdds(race, e); return '<button class="gb' + (sel.indexOf(e.no) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + e.no + '">' + (race.pre ? '<b class="no pre">?</b>' : noChip(e.no, e.waku)) + "<span>" + esc(e.nm) + "</span><small>" + (o ? esc(o[0]) : "") + "</small></button>"; }).join("") + "</div>";
   }
+  /* ══ ★★ 2026-11-19 ご報告「馬券購入で、単勝などの種類が上にあり、購入する際に間違えることが多い」══
+     真因：① 開くと<b>単勝が選ばれた状態</b>で、券種を選ばずに馬を選んで買うと単勝になった
+           ② 券種のボタンはシートのいちばん上だけ＝下で馬・金額を選んでいるあいだ、何を買おうとしているか見えなかった
+           ③ 券種を押しなおすと、選んだ馬が<b>何も言わずに消えた</b>
+     → ① はじめは何も選ばない（まず券種をえらぶ）② 券種は「1頭・2頭・3頭」の段に分け、色と短い説明つきの大きなボタン。
+         えらんだら<b>色つきの帯</b>（.tynow）にたたみ、スクロールしても上に貼りつく。追加のボタン・買い目・購入の確認にも券種の名前と色。
+       ③ 同じ頭数の券種へ変えるときは、選んだ馬をそのまま引きつぐ。消えるときは知らせる。 */
+  const TY_UI = {
+    win: { c: "#d23a2f", s: "1着" }, place: { c: "#2b6fd6", s: "3着以内" },
+    waku: { c: "#8a5a12", s: "枠で1・2着" }, quin: { c: "#12884a", s: "1・2着 順不同" }, wide: { c: "#6a3fd0", s: "2頭とも3着内" }, exa: { c: "#e0700f", s: "1着→2着" },
+    trio: { c: "#0e8a9e", s: "1〜3着 順不同" }, tri: { c: "#c2185b", s: "1→2→3着" },
+  };
+  function tyTag(type, mode, extra) {
+    const T = B.TYPE[type], ui = TY_UI[type] || { c: "#0f5a35" };
+    return '<i class="tytag" style="--tc:' + ui.c + '">' + esc(T ? T.nm : "?") + (mode && mode !== "norm" ? "・" + esc(B.MODES[mode] || "") : "") + (extra ? esc(extra) : "") + "</i>";
+  }
+  function tyChooser(S, race) {
+    const groups = [["1頭をえらぶ", 1], ["2頭をえらぶ", 2], ["3頭をえらぶ", 3]];
+    return '<div class="tysel">' + groups.map((g) => {
+      const list = B.TYPES.filter((x) => x.n === g[1] && !(race.pre && x.frame));
+      return '<div class="tyg"><div class="tyg-h">' + g[0] + '</div><div class="tyg-b c' + list.length + '">' + list.map((x) => {
+        const ui = TY_UI[x.k] || { c: "#0f5a35", s: "" };
+        return '<button data-ty="' + x.k + '" class="ty2' + (S.type === x.k ? " on" : "") + '" style="--tc:' + ui.c + '"><b>' + x.nm + "</b><small>" + esc(ui.s) + "</small></button>";
+      }).join("") + "</div></div>";
+    }).join("") + "</div>";
+  }
+  /* 券種を変える：同じ頭数（枠かどうかも同じ）なら選んだ馬を引きつぐ。ちがえば消して知らせる */
+  function slipSetType(k) {
+    const S = U.slip, T0 = B.TYPE[S.type], T1 = B.TYPE[k]; if (!T1) return;
+    const had = S.cols.some((c) => c.length) || S.pick.length || S.axis.length || S.part.length;
+    const same = T0 && T0.n === T1.n && !!T0.frame === !!T1.frame;
+    S.type = k; S.tyOpen = false;
+    if (!same) {
+      S.cols = [[], [], []]; S.pick = []; S.axis = []; S.part = [];
+      if (T1.n === 1) S.mode = "norm";
+      if (had) toast("券種を「" + T1.nm + "」に変えたので、選んだ馬をリセットしました");
+    }
+    paintSlip();
+  }
   function paintSlip() {
     const S = U.slip, box = $("#slip"); if (!S || !box) return;
     /* ★★ 2026-10-26 ご報告「馬券購入で値段を押すたびに画面上部に戻される」：中身を描き直すと .sh-body のスクロールが 0 に戻っていた → 位置を覚えて戻す */
     const sb0 = box.querySelector(".sh-body"), keepY = sb0 ? sb0.scrollTop : 0;
-    const r = raceOf(S.rid), race = S.race, T = B.TYPE[S.type];
+    const r = raceOf(S.rid), race = S.race, T = B.TYPE[S.type] || null;
     const t = now(), st = N.status(r, t);
-    const modes = T.n === 1 ? [["norm", "通常"]] : [["norm", "通常"], ["box", "ボックス"], ["nag", "ながし"], ["form", "フォーメーション"]];
+    const modes = !T || T.n === 1 ? [["norm", "通常"]] : [["norm", "通常"], ["box", "ボックス"], ["nag", "ながし"], ["form", "フォーメーション"]];
     if (!modes.some((m) => m[0] === S.mode)) S.mode = "norm";
     let picks = "";
+    if (!T) picks = "";
+    else {
     const lab = T.ord ? ["1着", "2着", "3着"] : T.frame ? ["枠", "枠", "枠"] : ["1頭目", "2頭目", "3頭目"];
-    if (T.n === 1) picks = '<div class="pick-h">馬をえらぶ<small>何頭でも（1頭ずつ別の買い目）</small></div>' + gridHTML("c0", S.cols[0], true);
+    if (T.n === 1) picks = '<div class="pick-h"><small>何頭でも（1頭ずつ別の買い目）</small></div>' + gridHTML("c0", S.cols[0], true);
     else if (S.mode === "norm") for (let i = 0; i < T.n; i++) picks += '<div class="pick-h">' + lab[i] + "</div>" + gridHTML("n" + i, S.cols[i], false, T.frame);
-    else if (S.mode === "box") picks = '<div class="pick-h">' + (T.frame ? "枠" : "馬") + "をえらぶ<small>えらんだもののすべての組み合わせ</small></div>" + gridHTML("bx", S.pick, true, T.frame);
+    else if (S.mode === "box") picks = '<div class="pick-h"><small>えらんだもののすべての組み合わせ</small></div>' + gridHTML("bx", S.pick, true, T.frame);
     else if (S.mode === "form") for (let i = 0; i < T.n; i++) picks += '<div class="pick-h">' + lab[i] + "<small>何頭でも</small></div>" + gridHTML("f" + i, S.cols[i], true, T.frame);
     else {
       const two = T.n === 3 && S.axis.length >= 2;
@@ -887,6 +929,7 @@
       picks = '<div class="pick-h">軸' + (T.n === 3 ? "<small>1頭か2頭</small>" : "") + "</div>" + gridHTML("ax", S.axis, T.n === 3, T.frame) +
         (posOpts.length ? '<div class="seg sm">' + posOpts.map((p) => '<button data-pos="' + p[0] + '" class="' + (S.pos === p[0] ? "on" : "") + '">軸 ' + p[1] + "</button>").join("") + "</div>" : "") +
         '<div class="pick-h">相手<small>何頭でも</small></div>' + gridHTML("pt", S.part, true, T.frame);
+    }
     }
     const cb = slipCombos();
     const ex = S.ex;
@@ -908,16 +951,22 @@
       '<div class="sh-body slip">' +
       (race.pre && st === "sale" ? '<div class="warn pre">🕘 <b>枠順の発表前</b>です。馬名で買えます（馬番は「?」・発表されしだい券に本当の馬番が入ります）。発表までに出走しなくなった馬を含む組は返還。枠連とオッズは枠順が出てから。</div>' : "") +
       (st !== "sale" ? '<div class="warn">' + (st === "entry" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から" : st === "pre" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から（あと <b data-cd=\"" + N.saleAt(r) + "\">" + N.left(N.saleAt(r) - t) + "</b>）。買い目は先に作っておけます" : st === "gap" ? "前日発売は終わりました。当日発売は " + esc(N.dtStr(N.nextSaleAt(r, t) || N.closeAt(r))) + " から（JRA と同じ時間）。買い目は先に作っておけます" : "このレースの発売は終わりました（締切は発走の2分前）") + "</div>" : '<div class="slip-cd">締切まで <b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + "</b><small>（" + esc(N.hm(N.closeAt(r))) + "・サーバーの時刻）</small></div>") +
-      '<div class="types">' + B.TYPES.filter((x) => !(race.pre && x.frame)).map((x) => '<button data-ty="' + x.k + '" class="' + (S.type === x.k ? "on" : "") + '"><b>' + x.nm + "</b></button>").join("") + "</div>" +
-      '<p class="tdesc">' + esc(T.d) + '<button class="tdesc-q" data-a="helpTypes">？ 馬券の種類</button></p>' +
-      (modes.length > 1 ? '<div class="seg modes">' + modes.map((m) => '<button data-md="' + m[0] + '" class="' + (S.mode === m[0] ? "on" : "") + '">' + m[1] + "</button>").join("") + "</div>" : "") +
-      picks +
-      '<div class="amt"><div class="amt-c"><span>' + cb.length + "点</span>" + (orng ? "<small>" + esc(orng) + "</small>" : "") + "</div>" +
-        '<div class="amt-u"><button data-u="-">−</button><b>' + fmt(S.u) + '</b><button data-u="+">＋</button><span>XEVA/点</span></div>' +
-        /* ★★ 2026-10-26 ご指定「値段を押したときプラスされる形に・リセットボタンも」 */
-        '<div class="amt-q">' + [100, 500, 1000, 5000].map((v) => '<button data-uq="' + v + '">＋' + fmt(v) + "</button>").join("") + '<button class="rs" data-ur="1">リセット</button></div>' +
-        '<button class="btn add" data-a="addLine" ' + (cb.length && S.u >= D.UNIT ? "" : "disabled") + ">" + (S.u >= D.UNIT ? "買い目に追加（" + fmt(lineCost) + " XEVA）" : "金額を入れてください（1点 " + fmt(D.UNIT) + " XEVA から）") + "</button></div>" +
-      (S.lines.length ? '<div class="lines"><div class="pick-h">買い目<small>' + S.lines.length + "件</small></div>" + S.lines.map((l, i) => '<div class="ln"><span><b>' + esc(B.lineLabel(l)) + "</b><small>" + esc(l.cb.slice(0, 6).map((c) => race.pre ? preStr(race, l.type, c) : B.comboStr(l.type, c)).join(" ") + (l.cb.length > 6 ? " …" : "")) + "</small></span><em>" + l.cb.length + "点×" + fmt(l.u) + "</em><b>" + fmt(l.cb.length * l.u) + '</b><button data-del="' + i + '" aria-label="消す">✕</button></div>').join("") + "</div>" : "") +
+      /* ★★ 2026-11-19 ① 券種（はじめは選ばない・えらんだら色つきの帯にたたんで上に貼りつける） */
+      (!T || S.tyOpen
+        ? '<div class="step-h"><em>1</em>券種をえらぶ<button class="tdesc-q" data-a="helpTypes">？ 馬券の種類</button></div>' + tyChooser(S, race) +
+          (!T ? '<p class="ty-need">↑ まず<b>券種</b>をえらんでください（えらぶと、馬をえらぶ画面が出ます）</p>' : '<p class="ty-need"><button class="btn sm" data-a="tyClose">このまま「' + esc(T.nm) + "」で買う</button></p>")
+        : '<div class="tynow" style="--tc:' + (TY_UI[S.type] || {}).c + '"><span class="tn-l"><small>券種</small><b>' + esc(T.nm) + "</b></span><span class=\"tn-d\">" + esc(T.d) + '</span><button data-a="tyOpen">券種を<br>変える</button></div>') +
+      (T && !S.tyOpen ?
+        (modes.length > 1 ? '<div class="step-h"><em>2</em>買い方</div><div class="seg modes">' + modes.map((m) => '<button data-md="' + m[0] + '" class="' + (S.mode === m[0] ? "on" : "") + '">' + m[1] + "</button>").join("") + "</div>" : "") +
+        '<div class="step-h"><em>' + (modes.length > 1 ? 3 : 2) + "</em>" + (T.frame ? "枠" : "馬") + "をえらぶ</div>" +
+        picks +
+        '<div class="amt" style="--tc:' + (TY_UI[S.type] || {}).c + '"><div class="amt-c">' + tyTag(S.type, S.mode) + "<span>" + cb.length + "点</span>" + (orng ? "<small>" + esc(orng) + "</small>" : "") + "</div>" +
+          '<div class="amt-u"><button data-u="-">−</button><b>' + fmt(S.u) + '</b><button data-u="+">＋</button><span>XEVA/点</span></div>' +
+          /* ★★ 2026-10-26 ご指定「値段を押したときプラスされる形に・リセットボタンも」 */
+          '<div class="amt-q">' + [100, 500, 1000, 5000].map((v) => '<button data-uq="' + v + '">＋' + fmt(v) + "</button>").join("") + '<button class="rs" data-ur="1">リセット</button></div>' +
+          '<button class="btn add" data-a="addLine" ' + (cb.length && S.u >= D.UNIT ? "" : "disabled") + ">" + (S.u >= D.UNIT ? (cb.length ? "<b>" + esc(T.nm) + (S.mode !== "norm" ? "・" + esc(B.MODES[S.mode] || "") : "") + "</b> を買い目に追加（" + cb.length + "点・" + fmt(lineCost) + " XEVA）" : (T.frame ? "枠" : "馬") + "をえらんでください") : "金額を入れてください（1点 " + fmt(D.UNIT) + " XEVA から）") + "</button></div>"
+        : "") +
+      (S.lines.length ? '<div class="lines"><div class="pick-h">買い目<small>' + S.lines.length + "件（このまま「購入する」で、この内容を買います）</small></div>" + S.lines.map((l, i) => '<div class="ln" style="--tc:' + (TY_UI[l.type] || {}).c + '"><span><b>' + tyTag(l.type, "", "") + esc(B.lineLabel(l).replace(B.TYPE[l.type].nm, "").trim()) + "</b><small>" + esc(l.cb.slice(0, 6).map((c) => race.pre ? preStr(race, l.type, c) : B.comboStr(l.type, c)).join(" ") + (l.cb.length > 6 ? " …" : "")) + "</small></span><em>" + l.cb.length + "点×" + fmt(l.u) + "</em><b>" + fmt(l.cb.length * l.u) + '</b><button data-del="' + i + '" aria-label="消す">✕</button></div>').join("") + "</div>" : "") +
       '<p class="sm">1点 100 XEVA から。払い戻しは実際の払戻金（100円あたり）どおり。1レース ' + fmt(D.MAX_PER_RACE) + " XEVA まで。結果と払い戻しはデータが届きしだい（" + PAY_NOTE + "）。" +
         (navigator.onLine === false ? "<br>📴 オフラインでも買えます（時刻はこの端末の時計で記録し、つながったときに同期・確認します）。" : "") + "</p></div>" +
       /* ★★ 2026-10-28 ご報告「購入するボタンが下の縁から浮いて上目に表示」：
@@ -942,7 +991,10 @@
     const S = U.slip; if (!S || !S.lines.length) return;
     const r = raceOf(S.rid);
     const total = S.lines.reduce((a, l) => a + l.cb.length * l.u, 0);
-    if (!confirmBox("合計 " + fmt(total) + " XEVA")) return;
+    /* ★★ 2026-11-19 確認の文に券種を入れる（「単勝 3点・馬連 6点」）＝ちがう券種のまま買うのに気づける */
+    const byTy = {}; S.lines.forEach((l) => { byTy[l.type] = (byTy[l.type] || 0) + l.cb.length; });
+    const kinds = B.TYPES.filter((x) => byTy[x.k]).map((x) => x.nm + " " + byTy[x.k] + "点").join("・");
+    if (!confirmBox(kinds + "／" + fmt(total) + " XEVA")) return;
     const btn = $('[data-a="buy"]'); if (btn) { btn.disabled = true; btn.textContent = "時刻を確かめています…"; }
     const res = await B.buy(r, S.race, S.lines);
     if (res.ok) {
@@ -960,7 +1012,7 @@
   /* confirm() が出ない環境があるので（MagiLex・MagiTier で踏んだ罠）、購入は「2回押し」で確かめる */
   function confirmBox(msg) {
     const btn = $('[data-a="buy"]');
-    if (btn && btn.dataset.arm !== "1") { btn.dataset.arm = "1"; btn.textContent = "もう一度押すと購入（" + msg.replace(/[^0-9,]/g, "") + " XEVA）"; btn.classList.add("arm"); setTimeout(() => { if (btn.isConnected) { btn.dataset.arm = ""; btn.textContent = "購入する"; btn.classList.remove("arm"); } }, 6000); return false; }
+    if (btn && btn.dataset.arm !== "1") { btn.dataset.arm = "1"; btn.textContent = "もう一度押すと購入（" + msg + "）"; btn.classList.add("arm"); setTimeout(() => { if (btn.isConnected) { btn.dataset.arm = ""; btn.textContent = "購入する"; btn.classList.remove("arm"); } }, 6000); return false; }
     return true;
   }
 
@@ -1058,7 +1110,10 @@
     if (d.tkt != null) { U.tkt = d.tkt; render(); if (U.sheetOpen) openTkFilter(); return; }
     if (d.tks) { U.tks = d.tks; closeSheet(); render(); return; }
     if (!U.slip) return;
-    if (d.ty) { U.slip.type = d.ty; U.slip.cols = [[], [], []]; U.slip.pick = []; U.slip.axis = []; U.slip.part = []; paintSlip(); return; }
+    /* ★★ 2026-11-19 券種：同じ頭数なら選んだ馬を引きつぐ（slipSetType）・帯の「券種を変える」で選びなおす */
+    if (d.ty) { slipSetType(d.ty); const sb = $("#slip .sh-body"); if (sb) sb.scrollTop = 0; return; }
+    if (d.a === "tyOpen") { U.slip.tyOpen = true; paintSlip(); const sb = $("#slip .sh-body"); if (sb) sb.scrollTop = 0; return; }
+    if (d.a === "tyClose") { U.slip.tyOpen = false; paintSlip(); return; }
     if (d.md) { U.slip.mode = d.md; U.slip.cols = [[], [], []]; U.slip.pick = []; U.slip.axis = []; U.slip.part = []; paintSlip(); return; }
     if (d.pk) { const p = d.pk.split(":"); slipPick(p[0], Number(p[1])); return; }
     if (d.pos) { U.slip.pos = d.pos; paintSlip(); return; }

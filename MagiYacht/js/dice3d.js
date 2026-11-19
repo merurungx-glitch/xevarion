@@ -307,7 +307,20 @@
   function substep(dt) {
     const B = S.bodies.filter((b) => b.mode === 'dyn');
     if (!B.length) return;
-    for (const b of B) { b.R = qmat(b.q); if (!b.asleep) b.v[1] -= PH.g * dt; }
+    /* ★★ 2026-11-19 ご指定「カップからサイコロが落ちるとき、すぐ直下して落ちる → もう少し滑らかに」
+       こぼれた直後（b.fall 秒）は重力を弱くしておき、だんだん本来の重さへもどす＝口からすべり出て、弧をえがいて落ちる。
+       床・ほかのサイコロに当たったら（b.fall を止める）ふつうの重さ＝転がり方・止まるまでの時間は変わらない */
+    for (const b of B) {
+      b.R = qmat(b.q);
+      if (b.asleep) continue;
+      let gs = 1;
+      if (b.fall != null) {
+        b.fall += dt;
+        if (b.fall >= FALL.t || lowY(b) < 0.05) b.fall = null;
+        else { const k = b.fall / FALL.t; gs = FALL.g0 + (1 - FALL.g0) * k * k; }
+      }
+      b.v[1] -= PH.g * gs * dt;
+    }
     const C = [];
     for (const b of B) if (!b.asleep) planeContacts(b, C);
     for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) if (!(B[i].asleep && B[j].asleep)) boxContacts(B[i], B[j], C);
@@ -456,6 +469,8 @@
      → かたむけるのを 0.34秒 → 0.8秒に・口に近い上のサイコロから順に、口のほうへすべってから1個ずつこぼれる・出る勢いを弱く
        ・出しきったら少し止まってから、ゆっくり起き上がって去る */
   const POUR = { dur: 0.8, max: 2.2, hold: 0.22, leave: 0.8 };
+  /* ★★ 2026-11-19 こぼれた直後の落ち方（t 秒かけて、重力を g0 倍から本来の重さへ）。releaseOne が b.fall = 0 を付ける */
+  const FALL = { t: 0.42, g0: 0.28 };
   function startPour(dir) {
     cup.want = false; cup.auto = null;
     const axis = norm(cross([0, 1, 0], dir));
@@ -475,7 +490,9 @@
     const s = CUP_SLOTS[(b.cs < 0 ? 0 : b.cs) % 5], d = P ? P.dir : [0, 0, -1], perp = [-d[2], 0, d[0]];
     const side = (s[0] * perp[0] + s[2] * perp[2]) * 2.4 + rnd(-0.9, 0.9);
     b.mode = 'dyn'; b.asleep = false; b.st = 0; b.thrown = true; b.nudges = 0; b.cs = -1;
-    b.v = add(add(add(mul(mouth, rnd(3.0, 4.8)), mul([pv[0], 0, pv[2]], 0.45)), mul(perp, side)), [rnd(-0.6, 0.6), rnd(-0.4, 0.3), rnd(-0.6, 0.6)]);
+    b.fall = 0;   /* ★★ 2026-11-19 はじめは軽く落ちる（substep の FALL） */
+    /* ★★ 2026-11-19 口から出る勢いは少しおさえ、下向きの速さを足さない（すとんと落ちて見えないように） */
+    b.v = add(add(add(mul(mouth, rnd(2.6, 4.0)), mul([pv[0], 0, pv[2]], 0.45)), mul(perp, side)), [rnd(-0.6, 0.6), rnd(-0.1, 0.4), rnd(-0.6, 0.6)]);
     b.w = add(mul(norm([rnd(-1, 1), rnd(-1, 1), rnd(-1, 1)]), rnd(8, 15)), mul(P ? P.axis : [1, 0, 0], rnd(2.5, 6)));
     b.R = qmat(b.q);
     if (!S.throwing) { S.throwing = true; S.throwT = 0; S.settleWait = 0; emit('throw', S.bodies.filter((o) => o.mode === 'cup').length + 1); }
@@ -1208,8 +1225,14 @@
       settleCheck(dt);
       draw();
     }
+    /* ★★ 2026-11-19 ご報告「途中でいい目になったとき・キープしてから戻したときに、スコア表の書ける印が消えて書けない」
+       真因：キープ／もどす・カップに集める動きのあいだ（busy）に描いたスコア表は「書けない」状態で描かれ、
+       動きが終わっても描き直す合図が無かった。→ busy が変わったら知らせる（game.js が描き直す） */
+    const bz = isBusy();
+    if (bz !== S.wasBusy) { S.wasBusy = bz; emit('busy', bz); }
     if (active()) S.raf = requestAnimationFrame(loop);
   }
+  function isBusy() { return !!(S.throwing || cup.mode === 'hold' || cup.mode === 'pour' || busyAnim()); }
 
   /* ══════════════════════════════════════════════════════════════
      2D（WebGL が使えない端末）：同じ合図で、平らな絵のサイコロを使う
@@ -1289,7 +1312,7 @@
     allow(o) { S.allow.throw = !!o.throw; S.allow.keep = !!o.keep; },
     highlight(list) { S.hl = [0, 0, 0, 0, 0]; (list || []).forEach((i) => { S.hl[i] = 1; }); S.hlOn = !!(list && list.length); if (S.mode === '2d') flat2dPaint(); kick(); },
     hint(onH) { S.hint = !!onH; kick(); },
-    busy: () => S.throwing || cup.mode === 'hold' || cup.mode === 'pour' || busyAnim(),
+    busy: () => isBusy(),
     cupState: () => cup.mode,
     inCup: () => S.bodies.filter((b) => b.mode === 'cup').length,
     get mode() { return S.mode; },

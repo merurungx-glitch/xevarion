@@ -72,6 +72,8 @@
     D.on('grab', () => AU.grab());
     D.on('call', () => { AU.tap(); render(); });
     D.on('cupDown', () => render());
+    /* ★★ 2026-11-19 動き（キープ・もどす・カップに集める）が終わったら描き直す＝スコア表の書ける印をもどす */
+    D.on('busy', (bz) => { if (G && T.live && !bz && !T.rolling) render(); });
     D.on('inCup', () => AU.hit('die', 0.25));
     D.on('needShake', () => U.toast('カップを押さえたまま、指を左右に動かして<b>ふって</b>から、はなしてね'));
     D.on('noFree', () => U.toast('5個ともキープしています。ふり直すなら、棚のサイコロをタップしてもどしてね'));

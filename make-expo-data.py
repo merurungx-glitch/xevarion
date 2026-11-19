@@ -176,7 +176,7 @@ def main():
                 t2 = re.sub(r'expo-data\.js\?v=(\d+)', lambda m: 'expo-data.js?v=%d' % (int(m.group(1)) + 1), t)
                 if t2 != t:
                     io.open(fp, 'w', encoding='utf-8', newline='').write(t2)
-        sw = os.path.join(HERE, 'sw-list', '_root.js')   # ★★ 2026-11-12 ルートの SW の版と一覧は sw-list/_root.js へ移した
+        sw = os.path.join(HERE, 'sw-list', 'root.js')   # ★★ 2026-11-12 ルートの SW の版と一覧は sw-list/root.js へ移した
         t = io.open(sw, encoding='utf-8', newline='').read()
         t2 = re.sub(r'expo/expo-data\.js\?v=(\d+)', lambda m: 'expo/expo-data.js?v=%d' % (int(m.group(1)) + 1), t)
         if t2 != t:

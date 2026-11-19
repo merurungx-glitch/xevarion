@@ -19,6 +19,18 @@
   --logo: 'Baloo 2', 'Arial Rounded MT Bold', 'M PLUS Rounded 1c', sans-serif;
 }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--v3); font-family: var(--font); -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-text-size-adjust: 100%; }
+/* ══ ★★ 2026-11-19 ご報告「iPhone・iPad で下のバーに線の空白が残り、狭くなっている」══
+   真因：ホーム画面から開くと position:fixed がぶら下がる箱が画面より短い（実測 852 に対して 793）。
+   全面の板（.front・.gm など）を fixed で敷いていたので、箱の下端で切られ、その下に body の色の帯が残っていた。
+   さらに --safeb（xeva-safebottom.js の --xv-safeb）も無かったため env() をそのまま足し、下のバーが二重に上がっていた。
+   → MagiQuiz と同じく、html.xv-full（xeva-safebottom.js が付ける）のあいだは、板を absolute で<b>本当の画面の高さ</b>に敷き、
+     下の余白は env() のまま（＝ホームバーのぶんだけ）にする。 */
+html.xv-full { --safeb: env(safe-area-inset-bottom, 0px); }
+html.xv-full, html.xv-full body { height: var(--xv-fullh, 100%); }
+html.xv-full body { position: relative; }
+html.xv-full .front, html.xv-full .gm, html.xv-full .sov, html.xv-full .rs, html.xv-full .ho { position: absolute; top: 0; left: 0; right: 0; bottom: auto; height: var(--xv-fullh); }
+html.xv-full .toast { position: absolute; bottom: calc(var(--safeb) + 22px); }
+html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bottom: auto !important; height: var(--xv-fullh) !important; padding-bottom: 0 !important; }
 button { font: inherit; border: 0; cursor: pointer; padding: 0; background: none; color: inherit; -webkit-appearance: none; appearance: none; touch-action: manipulation; }
 button:disabled { cursor: default; }
 .hidden { display: none !important; }

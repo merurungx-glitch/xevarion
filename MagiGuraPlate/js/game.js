@@ -133,8 +133,19 @@
   /* ★★ 2026-11-17 席は10か所（setup.js の RING）。だれがどこに座るかで札の大きさと皿の大きさを決める（これまでの人数ごとの並びと同じ計算）。
      ・同じ短い辺に2席（Ld と Lu・Ru と Rd）があると札を小さく（これまでの7〜8人と同じ）。
      ・四すみの席（TL・TR・BL・BR）があると、札に当たらないよう皿を小さく（これまでの3人以上と同じ）。 */
+  /* ★★ 2026-11-19 画面の大きさ。iPhone・iPad のアプリ表示（html.xv-full）では window.innerHeight が<b>画面より短い箱</b>の高さなので、
+     xeva-safebottom.js の --xv-fullh（本当の画面の高さ）を使う（下に線の空白が残っていた） */
+  function viewWH() {
+    const de = document.documentElement;
+    let W = window.innerWidth, H = window.innerHeight;
+    if (de.classList.contains('xv-full')) {
+      const f = parseFloat(getComputedStyle(de).getPropertyValue('--xv-fullh'));
+      if (f > H && f - H < 200) H = f;
+    }
+    return { W: W, H: H };
+  }
   function slotGeom(used) {
-    const W = window.innerWidth, H = window.innerHeight, ins = insets();
+    const vw = viewWH(), W = vw.W, H = vw.H, ins = insets();
     const UW = W - ins.l - ins.r, UH = H - ins.t - ins.b;
     const land = UW >= UH, LW = land ? UW : UH, LH = land ? UH : UW;
     const has = function (id) { return used.indexOf(id) >= 0; };
@@ -165,7 +176,7 @@
     return { W: W, H: H, cx: ins.l + UW / 2, cy: ins.t + UH / 2, R: Rp, u: u, slots: slots, menu: map({ x: mg + ch + 30 * u, y: mg + ch + 30 * u, rot: 0 }) };
   }
   function layout() {
-    const W = window.innerWidth, H = window.innerHeight;
+    const vw = viewWH(), W = vw.W, H = vw.H;
     RD.resize(W, H, root.XevaPerf && XevaPerf.dpr ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-17 XEVARION の動作モード（軽量・標準・高解像度） */
     const g = slotGeom(S.players.map(function (p) { return p.slot; }));
     const u = g.u;

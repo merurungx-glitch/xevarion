@@ -1,11 +1,16 @@
 {
-  "version": "2026-11-18-2",
-  "date": "2026-11-18",
-  "title": "MagiYacht の不具合を修正",
+  "version": "2026-11-19-1",
+  "date": "2026-11-19",
+  "title": "オフライン版のインストールを修正・オンラインだけで遊ぶを追加",
   "notes": [
-    "MagiYacht：「リタイア」「この試合をやめる」「新しく始める」の確認画面が一瞬で消え、小さな白い四角と暗い背景だけが残って先へ進めなかった不具合を直しました"
+    "オフライン用のデータがダウンロード（インストール）できなかった不具合を修正（11月13日の更新から）",
+    "はじめのダウンロードをえらべるように：ダウンロードする（おすすめ）／オンラインだけで遊ぶ（更新の画面の ✕・設定 → オフライン・通信設定）。オフライン用のデータの削除にも対応",
+    "MagiYacht：途中やキープをもどしたあとにスコア表に書けなくなるのを修正・カップからサイコロがなめらかに落ちるように",
+    "MagiYacht・MagiGura Plate：iPhone・iPad で下のバーに線の空白が残るのを修正",
+    "MagiDerby：馬券を買う画面で、はじめに券種をえらぶ形に（えらんだ券種がいつも見える・押しまちがい防止）",
+    "メールで GTA6 発売記念・エリザベス女王杯の補填・オフライン対応のおわびを配布"
   ],
-  "bytes": 92859371,
+  "bytes": 92900645,
   "files": 994,
   "urls": [
     "index.html",
@@ -1004,11 +1009,48 @@
     "MagiYacht/img/apple-touch-icon.png"
   ],
   "apps": [
+    "ishida",
+    "magiabyss",
+    "magibattle",
+    "magibocciarush",
+    "magiburst",
+    "magichainparty",
+    "magichemlex",
+    "magicounter",
+    "magiderby",
+    "magidominiongrid",
+    "magiguraplate",
+    "magijackpot",
+    "magilex",
+    "magilotto",
+    "magimarket",
+    "magimusic",
+    "magiquiz",
+    "magirail",
+    "magiscope",
+    "magishift",
     "magiyacht",
-    "tab:home"
+    "ngx",
+    "tab:chars",
+    "tab:community",
+    "tab:gacha",
+    "tab:home",
+    "xevynar"
   ],
-  "changedFiles": 18,
+  "changedFiles": 41,
   "history": [
+    {
+      "version": "2026-11-18-2",
+      "date": "2026-11-18",
+      "title": "MagiYacht の不具合を修正",
+      "notes": [
+        "MagiYacht：「リタイア」「この試合をやめる」「新しく始める」の確認画面が一瞬で消え、小さな白い四角と暗い背景だけが残って先へ進めなかった不具合を直しました"
+      ],
+      "apps": [
+        "magiyacht",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-11-18-1",
       "date": "2026-11-18",
@@ -1557,44 +1599,6 @@
       "apps": [
         "magiabyss",
         "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magiderby",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiquiz",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-25-1",
-      "date": "2026-10-25",
-      "title": "レベル・スタミナ廃止／MagiLex と MagiChemLex を統合／超極煌祭にヒサコ・アリス",
-      "notes": [
-        "レベルとスタミナを廃止（ホームの上は XEVA とジェムの縦1列）・両替チケット 1枚＝💎10",
-        "同期の作り直し：ほかの端末で XEVA が増えない・ジェムなどが増えつづけるのを修正",
-        "アップデートのあとにデベロッパーノート（変更点と新キャラの絵・設定から過去の回も）",
-        "超極煌祭にヒサコ（水）・アリス（闇）／MagiChemLex の WP 交換所にミキ（木）——どれも MagiAbyss 専用の UR",
-        "MagiLex を開くと MagiChemLex と旧MagiLex（化学・英単語・古文）を選べる・KP 交換所のキャラ表示を修正",
-        "MagiDerby：実際の馬券のような券面（馬名は1行の詰め字）・押して拡大／結果確認・勝敗の確定日・マイページ・木曜 0:00 から発売（枠順の前は馬名で・発表後に馬番へ差し替え）・スクロールの修正",
-        "MagiShift：2位からは守り7割・長さ3割（名前の横に守りの数・計算式）・最後の盤面を見返す",
-        "MagiQuiz（β版）：基礎の改題だけ・チームはくじ引き・ばくだんは小さく画面のふちが光る",
-        "MagiAbyss：町の人も細かいドット絵に／パートナー非表示のホーム・ガチャの SKIP ボタン・無料の印を修正"
-      ],
-      "apps": [
-        "magiabyss",
         "magibocciarush",
         "magiburst",
         "magichainparty",

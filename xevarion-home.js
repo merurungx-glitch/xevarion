@@ -4206,7 +4206,8 @@ function xhAsk(o) {
       "</div>";
     const done = (v) => { ov.classList.remove("on"); ov.onclick = null; res(v); };
     card.querySelectorAll("[data-v]").forEach((b) => { b.onclick = () => done(b.dataset.v === "1"); });
-    ov.onclick = (e) => { if (e.target === ov) done(false); };   /* 外側タップ＝キャンセル */
+    /* 外側タップ＝キャンセル（★★ 2026-11-19 o.strict のときは外側タップでは閉じない＝どちらかを押して決める） */
+    ov.onclick = (e) => { if (e.target === ov && !o.strict) done(false); };
     xhSyncViewportH();
     ov.classList.add("on");
   });
@@ -4565,13 +4566,14 @@ function xhOpenOfflineInfo() {
   try { xhPaintCleanNote(); } catch (e) {}
   xhPaintNetSettings();
   xhPaintOfflineList();
+  try { xhPaintOffMode(); } catch (e) {}       /* ★★ 2026-11-19 オフライン対応のオン・オフ */
   xhOpenSheet("xhOffSheet");
 }
 window.xhOpenOfflineInfo = xhOpenOfflineInfo;
 
 /* ══ ★★ 2026-11-17 オフラインの準備を「本当に入っているか」で見る（ご指定「ダウンロード・更新・オフライン対応はそれぞれのアプリ内で」）══
    前は「SW が登録されているか」だけで「準備完了」と出していた（ファイルが入りきっていなくても完了と出た）。
-   → 各 SW に「一覧（core）のうち、いくつ置き場に入っているか」を聞く（sw-list/_shared.js の xev-status）。
+   → 各 SW に「一覧（core）のうち、いくつ置き場に入っているか」を聞く（sw-list/shared.js の xev-status）。
    ・結果は端末に控える（xeva_off_ready_v1）：オフラインでアプリを押したとき、まだ何も入っていないアプリは開かずに案内する（xhOpenApp）。
    ・st：0＝入っていない／1＝一部だけ・ダウンロード中／2＝準備完了／3＝入っている（前の版の SW なので数は分からない）。 */
 const XH_OFF_READY_KEY = "xeva_off_ready_v1";
@@ -4738,11 +4740,187 @@ window.xhAskBigDownload = xhAskBigDownload;
 async function xhPrepareOffline() {
   const msg = xhEl("xhOffMsg");
   if (!xhOnline()) { if (msg) msg.textContent = "オンラインのときにダウンロードしてください。"; return; }
-  if (!(await xhAskBigDownload("オフライン用のデータ"))) return;   /* ★ 2026-08-20 通信設定 */
   if (!("serviceWorker" in navigator)) { if (msg) msg.textContent = "この環境では Service Worker を利用できません。"; return; }
+  /* ★★ 2026-11-19 「オンラインだけで遊ぶ」にしていたら、オフライン対応にもどしてからダウンロードする */
+  if (xhOffMode() === "off") { xhOfflineTurnOn(); return; }
+  /* ★★ 2026-11-19 確認は xhRedownloadOffline の1回だけ（前は「通信量を使います」→「オフライン用にダウンロード」→
+     もう一度「通信量を使います」と3回続けて出ていた） */
   xhRedownloadOffline();
 }
 window.xhPrepareOffline = xhPrepareOffline;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-11-19 オフライン対応のオン・オフ（ご指定）
+   「オンライン環境でのみ遊びたい場合や、ダウンロードする容量がない場合に、はじめにダウンロードを強要されるのでできない。
+     基本はダウンロードしていただく方針でよいが、選択可能に（バツボタン・設定での変更など）」
+   「オフライン対応の削除もできるように」
+   ・xeva_offline_v1：""（まだ選んでいない）／"on"（オフライン対応・おすすめ）／"off"（オンラインだけで遊ぶ）。<b>端末ごと</b>（同期しない）。
+   ・"off" のときは maintenance-gate.js が SW の登録を止める＝どのページもファイルを端末にためず、いつもサーバーの最新を読む。
+     → 更新のダウンロードも要らない（更新の画面は出さず、版の記録だけ進める＝xhCheckUpdate）。
+   ・はじめて開いた端末（XEVARION の SW がまだ1つも無い）には、ダウンロードする前に1回だけ選んでもらう（xhOfflineFirstAsk）。
+     これまでの端末（もう SW が入っている）は、黙って "on" のまま＝今までどおり。
+   ・削除（xhOfflineRemove）：XEVARION のフォルダの中の SW を外し、XEVARION の置き場（アプリの写し・キャラの絵）を消す。
+     ★ セーブデータ（localStorage）・曲（magimusic-audio）・通信の設定（xev-netpref）・XEVARIX（xvx-）は消さない。
+   ══════════════════════════════════════════════════════════════ */
+const XH_OFFMODE_KEY = "xeva_offline_v1", XH_OFFGO_KEY = "xeva_offline_go_v1";
+/* XEVARION の SW が使う置き場の名前（sw-list の v の頭）＋版に縛られない置き場（キャラの絵・入れかえの記録） */
+/* ＋アプリが開いたときにためる置き場（boccia・magiabyss・magichemlex の -rt-・MagiScope の data/img・MagiCounter の絵）。★ 曲（magimusic-audio）は消さない */
+const XH_OFF_CACHE_RE = /^((xevarion|xevynar|magi[a-z]+|boccia|chainparty|mdgrid|ishida-site|ngx-site)-sw-v\d+|(boccia|magiabyss|magichemlex)-rt-v\d+|magiscope-(data|img)|magicounter-art-v\d+|xev-img-v1|xev-instrep-v1)$/;
+function xhOffMode() { try { return localStorage.getItem(XH_OFFMODE_KEY) || ""; } catch (e) { return ""; } }
+function xhSetOffMode(v) { try { localStorage.setItem(XH_OFFMODE_KEY, v); } catch (e) {} }
+window.xhOffMode = xhOffMode;
+function xhOffBase() { return new URL("./", location.href).href; }
+/* 端末に入っているオフライン用のデータの大きさ（削除の前に見せる） */
+async function xhOfflineBytes() {
+  let bytes = 0, files = 0;
+  try {
+    for (const name of await caches.keys()) {
+      if (!XH_OFF_CACHE_RE.test(name)) continue;
+      const s = await xhCacheBytes(name);
+      bytes += s.bytes; files += s.files;
+    }
+  } catch (e) {}
+  return { bytes, files };
+}
+async function xhOfflineRemove() {
+  const out = { sw: 0, caches: 0 };
+  const base = xhOffBase();
+  if ("serviceWorker" in navigator) {
+    try {
+      for (const r of await navigator.serviceWorker.getRegistrations()) {
+        if ((r.scope || "").indexOf(base) !== 0) continue;          /* XEVARION のフォルダの外（XEVARIX など）は触らない */
+        try { if (await r.unregister()) out.sw++; } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  if ("caches" in window) {
+    try {
+      for (const name of await caches.keys()) {
+        if (!XH_OFF_CACHE_RE.test(name)) continue;
+        try { if (await caches.delete(name)) out.caches++; } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  try { localStorage.removeItem(XH_OFF_READY_KEY); localStorage.removeItem(XH_WARM_REQ); } catch (e) {}
+  return out;
+}
+/* 「オンラインだけで遊ぶ」にする（設定・更新の画面の ✕・はじめての案内から） */
+async function xhChooseOnlineOnly(from) {
+  if (_xhUpdRunning) return;
+  const m = await xhOfflineBytes();
+  const ok = await xhAsk({
+    icon: "🌐",
+    title: "オンラインだけで遊びますか？",
+    body: "オフライン用のデータを<b>ダウンロードせず</b>、いつもサーバーから最新のデータを読みこんで遊びます。<br>" +
+      (m.bytes > 0 ? "この端末に入っている<b>オフライン用のデータ（約 " + xhEscape(xhFmtSize(m.bytes)) + "）を削除</b>して、空きをもどします。<br>" : "") +
+      "<b>セーブデータ（進行・所持キャラ・XEVA）はそのまま</b>です。<br>" +
+      "<span style='font-size:11px;color:#6f82ad'>オフライン（機内モードなど）では遊べなくなります。あとから 設定 → オフライン・通信設定 でもどせます。</span>",
+    ok: "オンラインだけで遊ぶ", cancel: "もどる",
+  });
+  if (!ok) return false;
+  const r = await xhOfflineRemove();
+  xhSetOffMode("off");
+  /* 更新の画面がもう出ないように、いまの版を記録しておく（オンラインだけなら毎回最新を読むので、ダウンロードは要らない） */
+  try { if (_xhUpd && _xhUpd.version) localStorage.setItem(XH_PKG_KEY, _xhUpd.version); } catch (e) {}
+  _xhUpdMust = false;
+  xhCloseSheet("xhUpdSheet"); xhCloseSheet("xhOffSheet");
+  xhToast("🌐 オンラインだけで遊ぶ設定にしました" + (r.caches ? "<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>オフライン用のデータを削除しました（" + xhEscape(xhFmtSize(m.bytes)) + "）</span>" : ""), 2600);
+  /* 古い SW がつかんでいたページを、サーバーの最新で開き直す */
+  if (r.sw || r.caches) setTimeout(() => { try { location.reload(); } catch (e) {} }, 1700);
+  return true;
+}
+window.xhChooseOnlineOnly = xhChooseOnlineOnly;
+/* 設定の「オフライン対応を削除」（＝オンラインだけで遊ぶ） */
+function xhOfflineDelete() { return xhChooseOnlineOnly("settings"); }
+window.xhOfflineDelete = xhOfflineDelete;
+/* オフライン対応にもどす：SW の登録止め（maintenance-gate.js）はページを開き直すまで外れないので、印を付けて開き直し、そこでダウンロードする */
+async function xhOfflineTurnOn() {
+  if (!xhOnline()) { xhToast("オンラインのときに切りかえてください"); return; }
+  const ok = await xhAsk({
+    icon: "⬇",
+    title: "オフライン対応にもどしますか？",
+    body: "オフラインで遊べるアプリとホームのデータ（約 " + xhEscape(xhFmtSize((_xhUpd && _xhUpd.bytes) || 0)) + "）を、この端末にダウンロードします。<br>" +
+      "<b>Wi-Fi でのダウンロードをおすすめします。</b>セーブデータはそのままです。",
+    ok: "ダウンロードする", cancel: "やめる",
+  });
+  if (!ok) return;
+  xhSetOffMode("on");
+  try { localStorage.setItem(XH_OFFGO_KEY, "1"); } catch (e) {}
+  xhToast("⬇ 画面を読み込み直して、ダウンロードをはじめます", 1600);
+  setTimeout(() => { try { location.reload(); } catch (e) {} }, 900);
+}
+window.xhOfflineTurnOn = xhOfflineTurnOn;
+/* 設定の画面の「オフライン対応」の段 */
+function xhPaintOffMode() {
+  const box = xhEl("xhOffModeBox"); if (!box) return;
+  const off = xhOffMode() === "off";
+  const prep = xhEl("xhOffPrep");
+  if (prep) prep.innerHTML = off ? "⬇ オフライン対応にする（ダウンロード）" : "⬇ オフライン用にダウンロード";
+  box.innerHTML = off
+    ? '<div class="xh-sortnote">🌐 いまは<b>オンラインだけで遊ぶ</b>設定です。オフライン用のデータは入っていません（いつもサーバーの最新で動きます）。' +
+      '機内モードなどでも遊びたいときは、下の「オフライン対応にする」を押してください。</div>'
+    : '<div class="xh-sortnote">📴 いまは<b>オフライン対応</b>です（おすすめ）。端末の空きが足りないときや、オンラインだけで遊びたいときは、オフライン用のデータを削除できます。' +
+      '<span id="xhOffBytes"></span></div>' +
+      '<button class="xh-sbtn ghost" style="margin-top:6px" onclick="xhOfflineDelete()">🗑 オフライン対応を削除（オンラインだけで遊ぶ）</button>';
+  if (!off) xhOfflineBytes().then((m) => { const e = xhEl("xhOffBytes"); if (e && m.bytes) e.innerHTML = "<br>いま入っているオフライン用のデータ：<b>約 " + xhEscape(xhFmtSize(m.bytes)) + "</b>"; }).catch(() => {});
+  /* 一覧（アプリごとの準備）は、オンラインだけのときは出さない（どれも「入っていません」になるだけ） */
+  const list = xhEl("xhOffList"); if (list) list.style.display = off ? "none" : "";
+}
+window.xhPaintOffMode = xhPaintOffMode;
+/* 起動のあと（更新の確認が済んでから）：オフライン用の SW を登録するか */
+async function xhOfflineAfterCheck() {
+  if (!xhOnline() || !("serviceWorker" in navigator)) return;
+  const mode = xhOffMode();
+  if (mode === "off") return;
+  let go = false;
+  try { go = localStorage.getItem(XH_OFFGO_KEY) === "1"; if (go) localStorage.removeItem(XH_OFFGO_KEY); } catch (e) {}
+  if (go) { xhRedownloadOffline({ noAsk: true }); return; }
+  if (mode === "on") { xhRegisterAppSWs(); return; }
+  /* まだ選んでいない：もう XEVARION の SW が入っている端末（これまでの人）は、今までどおりオフライン対応 */
+  let have = false;
+  try { const base = xhOffBase(); have = (await navigator.serviceWorker.getRegistrations()).some((r) => (r.scope || "").indexOf(base) === 0); } catch (e) {}
+  if (have) { xhSetOffMode("on"); xhRegisterAppSWs(); return; }
+  xhOfflineFirstAsk();
+}
+/* はじめての端末に1回だけ：ダウンロードするか（おすすめ）／オンラインだけで遊ぶか。ほかの案内（アカウント・番号・ログインボーナス）が閉じてから出す */
+let _xhOffAsking = false;
+async function xhOfflineFirstAsk() {
+  if (_xhOffAsking) return;
+  _xhOffAsking = true;
+  /* ほかの案内が出ているあいだは待つ：シート・アカウントの画面・確認のほか、画面をおおう全面の板（GⅠ発売の告知・ログインボーナスなど） */
+  const busy = () => {
+    if (document.querySelector(".acc-overlay.open, .xh-sheet.on, #xhAsk.on")) return true;
+    const W = innerWidth, H = innerHeight;
+    return [...document.body.children].some((e) => {
+      if (e.id === "xhCover") return false;
+      const s = getComputedStyle(e);
+      if (s.position !== "fixed" || s.display === "none" || s.visibility === "hidden" || +s.opacity < 0.5 || s.pointerEvents === "none") return false;
+      const r = e.getBoundingClientRect();
+      return r.width >= W * 0.8 && r.height >= H * 0.8 && (+s.zIndex || 0) >= 1500;
+    });
+  };
+  for (let i = 0; i < 240 && busy(); i++) await new Promise((r) => setTimeout(r, 1500));   /* 最大6分まで待つ */
+  if (xhOffMode()) { _xhOffAsking = false; return; }                                    /* 待っているあいだに選ばれた */
+  const sz = (_xhUpd && _xhUpd.bytes) ? "約 " + xhFmtSize(_xhUpd.bytes) : "";
+  const dl = await xhAsk({
+    icon: "📥",
+    title: "オフライン用のデータをダウンロードしますか？",
+    body: "ダウンロードしておくと、<b>機内モードや電波の弱い所でも</b>アプリを遊べて、開くのも速くなります（おすすめ）。" +
+      (sz ? "<br>ダウンロード量：<b>" + xhEscape(sz) + "</b>（Wi-Fi をおすすめします）" : "") +
+      "<br><span style='font-size:11px;color:#6f82ad'>容量が足りないときや、オンラインだけで遊びたいときは「オンラインだけで遊ぶ」を選んでください。" +
+      "あとから 設定 → オフライン・通信設定 で、いつでも変えられます。</span>",
+    ok: "ダウンロードする（おすすめ）", cancel: "オンラインだけで遊ぶ", strict: true,
+  });
+  _xhOffAsking = false;
+  if (dl) {
+    xhSetOffMode("on");
+    xhRegisterAppSWs();
+    xhToast("⬇ オフライン用のデータを裏でダウンロードしています<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>進み具合は 設定 → オフライン・通信設定 で見られます</span>", 3200);
+  } else {
+    xhSetOffMode("off");
+    xhToast("🌐 オンラインだけで遊ぶ設定にしました<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>設定 → オフライン・通信設定 でいつでも変えられます</span>", 3200);
+  }
+}
 
 /* ══════════════ PWA ══════════════ */
 let _xhInstallPrompt = null;
@@ -5116,6 +5294,7 @@ window.xhCloseInstallHint = xhCloseInstallHint;
 /* ポータル自身 + 3アプリの Service Worker を登録（＝オフライン下準備） */
 async function xhRegisterAppSWs(opt) {
   if (!("serviceWorker" in navigator)) return false;
+  if (xhOffMode() === "off") return false;     /* ★★ 2026-11-19 オンラインだけで遊ぶ設定（登録しない） */
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   /* ★★ 2026-10-12d 更新のとき（quick）は、まだ登録していない SW だけを<b>待たずに</b>登録する。
      前は毎回 4 秒おきに全部を登録し直していたので、そのあいだに SW が順に名乗り出て件数が増え続けていた。 */
@@ -5861,6 +6040,8 @@ async function xhCheckUpdate() {
   /* ★★ 2026-08-22b 更新があったアプリ・タブに印を立てる（版が同じでも一度は通す） */
   try { xhMarkApply(data); } catch (e) {}
   if (cur === data.version) return false;
+  /* ★★ 2026-11-19 オンラインだけで遊ぶ設定：端末にファイルをためていないので、いつも最新を読んでいる＝ダウンロードは要らない。版の記録だけ進める */
+  if (xhOffMode() === "off") { try { localStorage.setItem(XH_PKG_KEY, data.version); } catch (e) {} return false; }
   /* ★★ 2026-08-22b 更新シートを開いているかどうかに関係なく、裏で落としはじめる。
      「更新を自動でダウンロード」がオンの回線だけ（初期設定はオフ）。 */
   try { xhBgDownload(data); } catch (e) {}
@@ -6046,11 +6227,14 @@ function xhShowUpdate(d, latest) {
 
 function xhUpdLater() {
   if (_xhUpdRunning) return;
-  /* ★★ 2026-10-15 追加データのダウンロードが必須のあいだは閉じない（オフライン・失敗のときは xhUpdPlayNow で閉じられる） */
-  if (_xhUpdMust && xhOnline() && !_xhUpdFail) { xhToast("📥 追加データをダウンロードしてから遊べます<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>最新のデータで遊ぶために必要です</span>", 2600); return; }
+  /* ★★ 2026-10-15 追加データのダウンロードが必須のあいだは閉じない（オフライン・失敗のときは xhUpdPlayNow で閉じられる）
+     ★★ 2026-11-19 ご指定「ダウンロードを選択可能に（バツボタンなど）」→ ✕ を出して、押したら「オンラインだけで遊ぶ」を選べるようにした。
+       （端末に古い版がたまったまま遊ぶと、直した不具合がそのまま残るので、「ダウンロード」か「オンラインだけ（ためない）」のどちらか） */
+  if (_xhUpdMust && xhOnline() && !_xhUpdFail) { xhChooseOnlineOnly("upd"); return; }
   xhCloseSheet("xhUpdSheet");
 }
 window.xhUpdLater = xhUpdLater;
+let _xhNoBigAsk = false;   /* ★★ 2026-11-19 xhUpdStart で通信量の確認を1回とばす（xhRedownloadOffline で確認ずみ） */
 /* ══ ★★ 2026-10-15 追加データのダウンロード（必須）══
    _xhUpdMust … いま出している更新が「遊ぶ前に必須」か（最新が入っているときの確認画面は false）
    _xhUpdFail … ダウンロードできなかった（回線など）。このときだけ「今のデータで遊ぶ」を出す */
@@ -6084,10 +6268,14 @@ function xhUpdMustPaint() {
   ["xhUpdSkip", "xhUpdX"].forEach((id) => {
     const e = xhEl(id); if (!e) return;
     if (!_xhUpdMust) return;                     /* 必須でないとき（最新の確認）は xhShowUpdate のまま */
-    e.style.display = must && (off || _xhUpdFail) ? "" : "none";
+    /* ★★ 2026-11-19 ✕ はいつも出す（押すと「オンラインだけで遊ぶ」を選べる）。「今のデータで遊ぶ」はオフライン・失敗のときだけ */
+    e.style.display = must && (id === "xhUpdX" || off || _xhUpdFail) ? "" : "none";
   });
   const sk = xhEl("xhUpdSkip");
   if (sk && _xhUpdMust) sk.textContent = off ? "今のデータで遊ぶ（オフライン）" : "今のデータで遊ぶ（おすすめしません）";
+  /* ★★ 2026-11-19 「ダウンロードせずにオンラインだけで遊ぶ」（オンラインで、ダウンロード中でないとき） */
+  const on1 = xhEl("xhUpdOnline");
+  if (on1) on1.style.display = must && !off ? "" : "none";
 }
 function xhUpdPlayNow() { _xhUpdFail = true; xhUpdLater(); }
 window.xhUpdPlayNow = xhUpdPlayNow;
@@ -6230,18 +6418,22 @@ window.xhOpenUpdateFromSettings = xhOpenUpdateFromSettings;
      穴だけが埋まり、通信量は必要なぶんに収まる。
    ★ 版の記録（XH_PKG_KEY）はここでは書き換えない。更新とは別の操作なので、
      見送っている更新があるなら、そのお知らせは残しておく。 */
-async function xhRedownloadOffline() {
+async function xhRedownloadOffline(opt) {
   if (_xhUpdRunning) return;
   if (!xhOnline()) { xhToast("オンラインのときにダウンロードしてください"); return; }
-  const ok = await xhAsk({
+  if (xhOffMode() === "off") { xhOfflineTurnOn(); return; }   /* ★★ 2026-11-19 オンラインだけの設定のときは、もどしてから */
+  /* ★★ 2026-11-19 確認はここの1回だけ（通信量の注意も同じ画面に書く）。opt.noAsk＝もう確認ずみ（オフライン対応にもどしたあと） */
+  const ok = (opt && opt.noAsk) ? true : await xhAsk({
     icon: "⬇",
     title: "オフライン用にダウンロード",
     body: "オフラインで遊べるアプリ（" + Object.keys(XH_OFFLINE_OK).length + " 本）とホームのデータを、この端末に入れます。<br>" +
           "<b>端末に無いファイルだけ</b>を落とすので、そろっていれば通信はほとんど発生しません。<br>" +
-          "<b>セーブデータ（進行・所持キャラ）はそのまま</b>です。",
+          "<b>セーブデータ（進行・所持キャラ）はそのまま</b>です。" +
+          (window.XHNet && XHNet.kind() === "cell" ? "<br><b>📶 いまはモバイルデータです（通信量を使います）。</b>" : ""),
     ok: "ダウンロード", cancel: "やめる",
   });
   if (!ok) return;
+  _xhNoBigAsk = true;
   xhCloseSheet("xhOffSheet");
   xhCloseSheet("xhSetSheet");
 
@@ -6285,7 +6477,7 @@ window.xhRedownloadOffline = xhRedownloadOffline;
 /* ★★ 2026-11-12 sw-list（全アプリの SW の版と一覧）を cache:"reload" で読み直す＝ブラウザの控えを新しくする（中身は使わない） */
 async function xhWarmSwLists() {
   if (!xhOnline()) return;
-  const names = ["_shared", "_root"].concat(Object.keys(XH_OFFLINE_OK).map((id) => XH_OFFLINE_OK[id].sw.split("/")[0]));
+  const names = ["shared", "root"].concat(Object.keys(XH_OFFLINE_OK).map((id) => XH_OFFLINE_OK[id].sw.split("/")[0]));
   await Promise.all(names.map((n) => fetch("sw-list/" + n + ".js", { cache: "reload" }).catch(() => null)));
 }
 async function xhDownloadCore(paint) {
@@ -6587,8 +6779,10 @@ async function xhUpdStart(keepVer) {
     setTimeout(() => { try { location.reload(); } catch (e) {} }, 1600);
     return;
   }
-  /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
-  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; xhUrClose(); try { xhUpdMustPaint(); } catch (e) {} return; }
+  /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく
+     ★★ 2026-11-19 オフライン用のダウンロード（xhRedownloadOffline）はそこで確認ずみなので、もう聞かない（_xhNoBigAsk） */
+  const skipAsk = _xhNoBigAsk; _xhNoBigAsk = false;
+  if (!skipAsk && !(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; xhUrClose(); try { xhUpdMustPaint(); } catch (e) {} return; }
   _xhUpdRunning = true;
   xhUpdResetPct();          /* ★ 走りはじめは 0% から（前回の値を引きずらない） */
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
@@ -7660,10 +7854,11 @@ function xhShow() {
     /* ★ 更新の確認が先。保留の更新があるときは自動ダウンロードせず、
        「サイズと更新内容を見せて → 同意 → ダウンロード」の順にする。 */
     setTimeout(() => {
+      /* ★★ 2026-11-19 SW を登録するかは xhOfflineAfterCheck（オンラインだけで遊ぶ設定・はじめての端末の選択） */
       xhCheckUpdate().then((pending) => {
         _xhUpdChecked = true;
-        if (!pending && xhOnline()) xhRegisterAppSWs();
-      }).catch(() => { _xhUpdChecked = true; if (xhOnline()) xhRegisterAppSWs(); });
+        if (!pending && xhOnline()) xhOfflineAfterCheck();
+      }).catch(() => { _xhUpdChecked = true; if (xhOnline()) xhOfflineAfterCheck(); });
     }, 1200);
     /* ★★ 2026-11-17 オフラインの準備を控える（オフラインでも調べられる＝置き場は端末の中）・XEVARIX が入っているか */
     setTimeout(() => {

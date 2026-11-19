@@ -13,7 +13,7 @@
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/xev-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script src="maintenance-gate.js?v=13"></script>
+<script src="maintenance-gate.js?v=14"></script>
 <!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
      （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
 <script src="xeva-splash.js?v=22" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
@@ -177,7 +177,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=44" defer></script>
-<script src="xeva-devnotes.js?v=21" defer></script>
+<script src="xeva-devnotes.js?v=22" defer></script>
 <script src="xeva-tour.js?v=5" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=14" defer></script>
@@ -194,8 +194,8 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=29"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=116" defer></script>
-<script src="xevarion-home.js?v=187" defer></script>
+<script src="xevarion.js?v=117" defer></script>
+<script src="xevarion-home.js?v=188" defer></script>
 <script src="home-lobby.js?v=7" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=36" defer></script>
 <script src="xeva-jef.js?v=1" defer></script><!-- ★★ 2026-11-08 ジェフ千葉のホームデザイン（スタジアム・応援旗・試合の札・BGM） -->
@@ -918,6 +918,8 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       </div>
       <button class="xh-sbtn" id="xhUpdGo" onclick="xhUpdStart()">⬇ 更新する（最大 <span id="xhUpdSize2">—</span>）</button>
       <button class="xh-sbtn ghost" id="xhUpdSkip" onclick="if(document.getElementById('xhUpdSheet').classList.contains('must'))xhUpdPlayNow();else xhUpdLater()">あとで</button>
+      <!-- ★★ 2026-11-19 ご指定「ダウンロードを強要しない（選択可能に）」→ ダウンロードせずにオンラインだけで遊ぶ（xhChooseOnlineOnly） -->
+      <button class="xh-sbtn ghost" id="xhUpdOnline" style="display:none" onclick="xhChooseOnlineOnly('upd')">🌐 ダウンロードせずにオンラインだけで遊ぶ</button>
       <div class="xh-upd-tip">Wi-Fi での更新をおすすめします。更新すると<b>オフラインでも最新版</b>で遊べます。</div>
 
       <!-- ══ ★★ 2026-09-10 説明は<b>たたんでおく</b>（ご指定：コンパクトに）══
@@ -1718,6 +1720,9 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
            中身は xevarion-home.js の xhPaintNetSettings() が組み立てる。 -->
       <div class="xh-sec-label">通信の設定</div>
       <div id="xhNetBox"></div>
+      <!-- ★★ 2026-11-19 オフライン対応のオン・オフ（削除＝オンラインだけで遊ぶ）。中身は xevarion-home.js の xhPaintOffMode() -->
+      <div class="xh-sec-label">オフライン対応</div>
+      <div id="xhOffModeBox"></div>
       <div class="xh-sec-label">オフラインで遊べるアプリ</div>
       <div id="xhOffList"></div>
       <!-- ★★ 2026-11-17 ボタンは1つに（前は「登録するだけ」と「取り直す」の2つだった）。どちらも足りないファイルだけを落とす同じダウンロード（進み具合のバーつき）。
@@ -2518,6 +2523,19 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
          起動ロゴ・新ロゴ／MagiAbyss 全員ちがう性能（技も）／MagiBattle ロイヤル隊／MagiQuiz・MagiChemLex -->
     <!-- 2026-11-13：MagiChemLex に新ミニゲーム「ケミカル・ルート（反応経路スコアアタック）」／ホームの計算なしモードの切りかえは設定へ／MagiQuiz の結果詳細／
          オフライン用のデータ（Service Worker の版と一覧）を sw-list フォルダへ集約 -->
+    <!-- ★★ 2026-11-19 オフライン版のインストールの直し・オンラインだけで遊ぶ・MagiYacht／GuraPlate／MagiDerby の直し・補填の配布 -->
+    <div class="nm-item" data-tag="update" data-date="2026-11-19">
+      <div class="nm-date">2026<br>11.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">FIX</span></div>
+        <div class="nm-title">📴 オフライン用のデータがダウンロードできない不具合を修正・「オンラインだけで遊ぶ」を追加</div>
+        <div class="nm-txt">・11月13日の更新から、オフライン用のデータが<b>ダウンロード（インストール）できなかった</b>不具合を直しました。<br>
+          ・はじめのダウンロードは<b>えらべる</b>ようになりました。容量が足りないときや、オンラインだけで遊びたいときは「<b>オンラインだけで遊ぶ</b>」（更新の画面の ✕・設定 → オフライン・通信設定）。<b>オフライン用のデータの削除</b>もできます。<br>
+          ・MagiYacht：ふっている途中・キープをもどしたあとに<b>スコア表に書けなくなる</b>のを直し、カップからサイコロが<b>なめらかに</b>落ちるように。MagiGura Plate・MagiYacht：iPhone・iPad で<b>下に線の空白</b>が残るのを直しました。<br>
+          ・MagiDerby：馬券を買う画面で、<b>はじめに券種をえらぶ</b>形にし、えらんだ券種がいつも見えるようにしました（押しまちがい防止）。<br>
+          ・📧 <b>GTA6 発売記念</b>・<b>エリザベス女王杯の補填</b>・<b>オフライン対応のおわび</b>をメールでお届けしています。</div>
+      </div>
+    </div>
     <!-- ★★ 2026-11-18 新作 MagiYacht（サイコロゲーム・ルールは「ヨット」） -->
     <div class="nm-item" data-tag="new" data-date="2026-11-18">
       <div class="nm-date">2026<br>11.18</div>

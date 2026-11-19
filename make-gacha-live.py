@@ -85,8 +85,8 @@ def main():
     if old != js:
         io.open(OUT, 'w', encoding='utf-8').write(js)
         # 中身が変わったら ?v= と SW の版も上げる（上げないと古いのが使われ続ける）
-        # ★★ 2026-11-12 ルートの SW の版と一覧は sw-list/_root.js へ移した（sw.js には無い）
-        SWL = os.path.join('sw-list', '_root.js')
+        # ★★ 2026-11-12 ルートの SW の版と一覧は sw-list/root.js へ移した（sw.js には無い）
+        SWL = os.path.join('sw-list', 'root.js')
         for fn in ('index.html', SWL):
             fp = os.path.join(HERE, fn)
             t = io.open(fp, encoding='utf-8', newline='').read()

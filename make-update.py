@@ -108,7 +108,7 @@ def app_of(path):
 # ★★ 2026-11-12 SW の版（v）と一覧（core）は sw-list/<アプリ>.js にある
 # ------------------------------------------------------------
 # ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
-#   ・各アプリの sw.js は importScripts("../sw-list/_shared.js", "../sw-list/<アプリ>.js") で読むだけ。
+#   ・各アプリの sw.js は importScripts("../sw-list/shared.js", "../sw-list/<アプリ>.js") で読むだけ。
 #   ・更新のたびに変わるのは sw-list の中だけ（sw.js は「しくみ」を直したときだけ）。
 #   ・一覧のパスは、これまでどおり<b>その sw.js から見た相対パス</b>（resolve は sw.js の場所で解く）。
 # ══════════════════════════════════════════════════════════════
@@ -116,9 +116,9 @@ LIST_RE = re.compile(r'self\.XEV_SW = \{ v: "([^"]+)", core: \[(.*)\n\] \};', re
 
 
 def list_of(sw_path):
-    """sw.js → その SW の版と一覧のファイル（sw-list/<アプリ>.js。ルートは _root.js）"""
+    """sw.js → その SW の版と一覧のファイル（sw-list/<アプリ>.js。ルートは root.js）"""
     d = os.path.dirname(sw_path)
-    return "sw-list/%s.js" % (d if d else "_root")
+    return "sw-list/%s.js" % (d if d else "root")
 
 
 def read_list(sw_path):
@@ -245,6 +245,13 @@ def build_upload(version):
         return
     base = st.get("base", {}) if st.get("version") == version else st.get("now", {})
     changed = sorted(k for k, v in now.items() if base.get(k) != v)
+    # ★★★ 2026-11-19 GitHub Pages（Jekyll）は「_」や「.」で始まるファイル・フォルダを配らない（404）。
+    #   sw-list/_shared.js・_root.js がそうで、11-13 から全アプリの SW が登録できなかった。上げても届かないので警告する。
+    hidden = [k for k in changed if any(seg[:1] in "_." for seg in k.split("/"))]
+    if hidden:
+        print("!! 警告: 名前が「_」か「.」で始まるので、GitHub Pages では配られません（404 になります）:")
+        for k in hidden:
+            print("   -", k)
     gone = sorted(k for k in base if k not in now)
     out = os.path.join(UPLOAD_DIR, version)
     if os.path.isdir(out):

@@ -7,16 +7,16 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ./sw-list/_root.js へ移した ══
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ./sw-list/root.js へ移した ══
    ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
    ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
      → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
    ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
-   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
-importScripts("./sw-list/_shared.js", "./sw-list/_root.js");
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝shared.js の xevListNewer）。 */
+importScripts("./sw-list/shared.js", "./sw-list/root.js");
 const VERSION = self.XEV_SW.v;
 const CORE = self.XEV_SW.core;
-const XEV_LIST_URL = "./sw-list/_root.js";
+const XEV_LIST_URL = "./sw-list/root.js";
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 
 /* このSWが触らないパス（各アプリの自前SWに任せる／通信必須） */
@@ -454,7 +454,7 @@ async function xevPruneImg(coreAbs) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（shared.js の xevListNewer） */
   const CORE_NOW = (await xevListNewer()) || CORE;
   for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない

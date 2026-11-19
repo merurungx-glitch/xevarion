@@ -413,6 +413,46 @@ main{max-width:860px;margin:0 auto;padding:4px 12px calc(28px + var(--safe-b))}
 .types button{padding:9px 4px;border-radius:12px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:900}
 .types button.on{background:var(--g2);color:#fff;box-shadow:0 3px 0 #08331d}
 .tdesc{margin:6px 2px 0;font-size:12px;color:var(--sub)}
+/* ══ ★★ 2026-11-19 券種のえらび方（ご報告「券種が上にあって、買うときに間違えることが多い」）══
+   ・はじめは何も選ばない → 1頭・2頭・3頭の段に分けた大きなボタン（色・短い説明つき）
+   ・えらんだら色つきの帯（.tynow）にたたんで、スクロールしても上に貼りつく（いま何を買おうとしているか、いつも見える）
+   ・手順に番号（①券種 ②買い方 ③馬）・金額・追加ボタン・買い目・購入の確認にも券種の名前と色 */
+.step-h{display:flex;align-items:center;gap:8px;margin:12px 2px 7px;font-weight:900;color:var(--g2);font-size:14.5px}
+.step-h:first-child{margin-top:2px}
+.step-h em{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--g2);color:#fff;font-style:normal;font-family:var(--num);font-size:13px}
+.step-h .tdesc-q{margin-left:auto}
+.tysel{display:flex;flex-direction:column;gap:8px}
+.tyg{background:#fff;border-radius:14px;padding:8px;box-shadow:0 0 0 1.5px var(--line) inset}
+.tyg-h{font-size:11.5px;font-weight:900;color:var(--sub);margin:0 2px 6px}
+.tyg-b{display:grid;gap:6px;grid-template-columns:repeat(2,1fr)}
+.tyg-b.c4{grid-template-columns:repeat(4,1fr)}
+.tyg-b.c3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:420px){.tyg-b.c4{grid-template-columns:repeat(2,1fr)}}
+.ty2{display:flex;flex-direction:column;align-items:center;gap:1px;padding:10px 4px 9px;border-radius:12px;background:#fff;box-shadow:0 0 0 2px var(--line) inset;box-shadow:0 0 0 2px color-mix(in srgb,var(--tc) 35%,#fff) inset;color:var(--tc)}
+.ty2 b{font-size:16px;font-weight:900;line-height:1.2}
+.ty2 small{font-size:10.5px;font-weight:800;color:var(--sub);line-height:1.2}
+.ty2.on{background:var(--tc);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ty2.on small{color:rgba(255,255,255,.9)}
+.ty2:active{transform:translateY(1px)}
+.ty-need{margin:10px 2px 2px;font-size:12.5px;font-weight:800;color:var(--sub);text-align:center}
+.ty-need .btn{width:100%}
+.tynow{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;margin:0 -2px 4px;padding:9px 10px;border-radius:14px;
+  background:var(--tc);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.tynow .tn-l{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;flex:none}
+.tynow .tn-l small{font-size:10px;font-weight:800;opacity:.85}
+.tynow .tn-l b{font-size:21px;font-weight:900}
+.tynow .tn-d{flex:1;min-width:0;font-size:11.5px;font-weight:800;line-height:1.35;opacity:.95}
+.tynow button{flex:none;padding:6px 10px;border-radius:10px;background:#fff;color:var(--tc);font-weight:900;font-size:11.5px;line-height:1.25}
+.tytag{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:99px;background:var(--tc);color:#fff;font-style:normal;font-weight:900;font-size:12px;vertical-align:1px;white-space:nowrap}
+.amt{box-shadow:var(--sh),0 0 0 2px color-mix(in srgb,var(--tc,#0f5a35) 30%,transparent) inset}
+.amt-c{flex-wrap:wrap;row-gap:2px}
+.amt-c .tytag{font-size:13px;align-self:center}
+.amt-c small{flex-basis:100%}
+.btn.add b{color:inherit;font-weight:900;margin-right:2px}
+.ln{box-shadow:0 1px 0 var(--line),inset 4px 0 0 var(--tc,transparent)}
+/* 確認の文（券種つき）は長いので、2行まで折り返す・合計の欄はつぶさない */
+.buy>div{min-width:96px}
+.buy .btn.arm{min-width:0;max-width:64%;white-space:normal;font-size:12.5px;line-height:1.3;padding:9px 12px}
 .pick-h{display:flex;align-items:baseline;gap:8px;margin:12px 2px 6px;font-weight:900;color:var(--g2)}
 .pick-h small{color:var(--sub);font-weight:700;font-size:11px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}

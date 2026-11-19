@@ -19,6 +19,16 @@
   --font: 'M PLUS Rounded 1c', 'Noto Sans JP', system-ui, -apple-system, 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
   --logo: 'Baloo 2', 'Arial Rounded MT Bold', 'M PLUS Rounded 1c', sans-serif;
 }
+/* ══ ★★ 2026-11-19 ご報告「iPhone・iPad で下のバーに線の空白が残り、狭くなっている」══
+   真因：ホーム画面から開くと position:fixed がぶら下がる箱が画面より短い（実測 852 に対して 793）。
+   html・body（style.css で fixed）と全面の板が箱の下端で切られ、その下に body の色の帯が残っていた。
+   → MagiQuiz と同じく、html.xv-full（xeva-safebottom.js が付ける）のあいだは body と板を absolute で<b>本当の画面の高さ</b>に。
+     盤の大きさは game.js の viewWH()（--xv-fullh）で測る。下の余白は env() のまま（＝ホームバーのぶんだけ）。 */
+html.xv-full { position: static; height: var(--xv-fullh, 100%); --safeb: env(safe-area-inset-bottom, 0px); }
+html.xv-full body { position: absolute; top: 0; left: 0; right: 0; bottom: auto; height: var(--xv-fullh, 100%); }
+html.xv-full .front, html.xv-full .sov { position: absolute; top: 0; left: 0; right: 0; bottom: auto; height: var(--xv-fullh); }
+html.xv-full .toast { position: absolute; bottom: calc(var(--safeb) + 22px); }
+html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bottom: auto !important; height: var(--xv-fullh) !important; padding-bottom: 0 !important; }
 /* 起動の画面もロゴの青に（xeva-splash.js の変数を上書き） */
 #xevaSplash { --xs-bg: linear-gradient(160deg, #3b93ff, #0b3f9f) !important; --xs-a: #3b93ff !important; --xs-b: #0b3f9f !important; --xs-ink: #ffd447 !important; --xs-amp: #ffd447 !important; --xs-cap: #dce9ff !important; --xs-fill: linear-gradient(135deg, #ffe680, #ffc22e) !important; --xs-track: rgba(255, 255, 255, .22) !important; --xs-sh: rgba(5, 25, 90, .4) !important; --xs-appsh: rgba(5, 25, 90, .4) !important; }
 input, select, textarea { font: inherit; -webkit-user-select: text; user-select: text; touch-action: manipulation; }
