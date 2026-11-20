@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは sw.js（ルート） から見た相対パスのまま
    ・sw.js（ルート） がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "xevarion-sw-v269", core: [
+self.XEV_SW = { v: "xevarion-sw-v270", core: [
   "./",
   "./index.html",
   /* ★ 2026-08-11 apps.html（アプリ紹介ページ）は廃止しました */
@@ -16,7 +16,7 @@ self.XEV_SW = { v: "xevarion-sw-v269", core: [
   "./gacha.html",
   "./gacha-ui.js?v=72",
   "./mb-newchars.js?v=44",
-  "./xeva-devnotes.js?v=22",
+  "./xeva-devnotes.js?v=23",
   "./xeva-tour.js?v=5",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
   "./xeva-favs.js?v=3",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
   "./xeva-fav-traits.js?v=2",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
@@ -71,12 +71,12 @@ self.XEV_SW = { v: "xevarion-sw-v269", core: [
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=117",
+  "./xevarion.js?v=118",
   "./xevarion-home.js?v=188",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=14",
   "./home-mate.js?v=36",
-  "./xeva-jef.js?v=1", "./xeva-jef.css?v=2", "./jef/stadium.svg?v=1",   /* ★★ 2026-11-08 ジェフ千葉のホームデザイン */
+  "./xeva-jef.js?v=2", "./xeva-jef.css?v=2", "./jef/stadium.svg?v=1",   /* ★★ 2026-11-08 ジェフ千葉のホームデザイン */
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
   "./home-lobby.js?v=7",
   "./home-dot.js?v=6",

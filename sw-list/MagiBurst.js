@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBurst/sw.js から見た相対パスのまま
    ・MagiBurst/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiburst-sw-v212", core: [
+self.XEV_SW = { v: "magiburst-sw-v213", core: [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",

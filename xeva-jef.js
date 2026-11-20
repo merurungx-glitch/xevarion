@@ -98,7 +98,7 @@
   /* ══ 試合のデータ（MagiMarket と同じ）══ */
   const FALLBACK = { matches: [
     { id: "2026110805", date: "2026-11-08", time: "17:03", home: true, opp: "水戸", sec: "第14節", state: "game-over", gf: 1, ga: 0, stadium: "フクアリ" },
-    { id: "2026112001", date: "2026-11-20", time: "19:00", home: false, opp: "柏", sec: "第15節", state: "ticket", stadium: "三協Ｆ柏" },
+    { id: "2026112001", date: "2026-11-20", time: "19:00", home: false, opp: "柏", sec: "第15節", state: "game-over", gf: 1, ga: 0, stadium: "三協Ｆ柏" },
   ] };
   function cached() { try { const c = JSON.parse(localStorage.getItem(CK) || "null"); return c && c.data ? c.data : null; } catch (e) { return null; } }
   let fetching = null;

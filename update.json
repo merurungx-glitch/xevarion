@@ -1,16 +1,11 @@
 {
-  "version": "2026-11-19-1",
-  "date": "2026-11-19",
-  "title": "オフライン版のインストールを修正・オンラインだけで遊ぶを追加",
+  "version": "2026-11-20-1",
+  "date": "2026-11-20",
+  "title": "ジェフ千葉 勝利記念 10,000 XEVA",
   "notes": [
-    "オフライン用のデータがダウンロード（インストール）できなかった不具合を修正（11月13日の更新から）",
-    "はじめのダウンロードをえらべるように：ダウンロードする（おすすめ）／オンラインだけで遊ぶ（更新の画面の ✕・設定 → オフライン・通信設定）。オフライン用のデータの削除にも対応",
-    "MagiYacht：途中やキープをもどしたあとにスコア表に書けなくなるのを修正・カップからサイコロがなめらかに落ちるように",
-    "MagiYacht・MagiGura Plate：iPhone・iPad で下のバーに線の空白が残るのを修正",
-    "MagiDerby：馬券を買う画面で、はじめに券種をえらぶ形に（えらんだ券種がいつも見える・押しまちがい防止）",
-    "メールで GTA6 発売記念・エリザベス女王杯の補填・オフライン対応のおわびを配布"
+    "ジェフユナイテッド市原・千葉が柏レイソルに 1-0 で勝利したので、全員に 10,000 XEVA をメールでお贈りしています"
   ],
-  "bytes": 92900645,
+  "bytes": 92903013,
   "files": 994,
   "urls": [
     "index.html",
@@ -1009,36 +1004,53 @@
     "MagiYacht/img/apple-touch-icon.png"
   ],
   "apps": [
-    "ishida",
-    "magiabyss",
-    "magibattle",
-    "magibocciarush",
     "magiburst",
-    "magichainparty",
-    "magichemlex",
-    "magicounter",
-    "magiderby",
-    "magidominiongrid",
-    "magiguraplate",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimarket",
-    "magimusic",
-    "magiquiz",
-    "magirail",
-    "magiscope",
-    "magishift",
-    "magiyacht",
-    "ngx",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "tab:home"
   ],
-  "changedFiles": 41,
+  "changedFiles": 5,
   "history": [
+    {
+      "version": "2026-11-19-1",
+      "date": "2026-11-19",
+      "title": "オフライン版のインストールを修正・オンラインだけで遊ぶを追加",
+      "notes": [
+        "オフライン用のデータがダウンロード（インストール）できなかった不具合を修正（11月13日の更新から）",
+        "はじめのダウンロードをえらべるように：ダウンロードする（おすすめ）／オンラインだけで遊ぶ（更新の画面の ✕・設定 → オフライン・通信設定）。オフライン用のデータの削除にも対応",
+        "MagiYacht：途中やキープをもどしたあとにスコア表に書けなくなるのを修正・カップからサイコロがなめらかに落ちるように",
+        "MagiYacht・MagiGura Plate：iPhone・iPad で下のバーに線の空白が残るのを修正",
+        "MagiDerby：馬券を買う画面で、はじめに券種をえらぶ形に（えらんだ券種がいつも見える・押しまちがい防止）",
+        "メールで GTA6 発売記念・エリザベス女王杯の補填・オフライン対応のおわびを配布"
+      ],
+      "apps": [
+        "ishida",
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magiguraplate",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimarket",
+        "magimusic",
+        "magiquiz",
+        "magirail",
+        "magiscope",
+        "magishift",
+        "magiyacht",
+        "ngx",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-11-18-2",
       "date": "2026-11-18",
@@ -1581,43 +1593,6 @@
         "tab:community",
         "tab:gacha",
         "tab:home"
-      ]
-    },
-    {
-      "version": "2026-10-26-1",
-      "date": "2026-10-26",
-      "title": "完凸ロビー（ヒサコ・アリス）／バナーのドット絵／MagiDerby の見直し",
-      "notes": [
-        "超極煌祭のヒサコ・アリスを完凸（4凸）すると、ホームのロビーに動く立ち絵（♥パートナー →「ロビー」タブ・表情は変わらず軽く動く）",
-        "開催中のイベントのバナーの上を、持っているキャラがドット絵で動く（押すと「✎ かえる」・♥パートナー →「ドット絵」）・パートナー非表示のときのバナーを少し小さく",
-        "下バーのガチャのアイコンを新しいデザインに（「無料」の印は出さない）・iPad の上の端の対策を元に戻した",
-        "デベロッパーノートは追加データのダウンロードのあとに表示・XEVA の受け取りやログインのあとに画面が下がっていくのを修正",
-        "MagiDerby：発売はレースの日の3日前の 0:00 から・結果と払い戻しはデータが届きしだい（取得の時刻は前後します）・GⅠ の結果が出たら上に「結果を見る」（3日目まで）",
-        "MagiDerby：金額は押すたびに足す＋リセット（押しても画面が上にもどらない）・馬券タブでレースごとに絞りこみ・LIVE（JRA 公式の無料ライブ）・使い方アニメと馬券の種類の説明",
-        "MagiDerby：レースの特集ページへのボタン（再現アニメは外した）・券面の緑の帯と券種の位置・スマホで拡大したときの ✕ と下の線・結果の券の馬の名前を修正"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magiderby",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiquiz",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
       ]
     }
   ]
