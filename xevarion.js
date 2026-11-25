@@ -2460,6 +2460,10 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-11-25 XEVARION II はじまりました（ご指定「XEVARION で XEVARION II 開始のお知らせと URL」→ 第7回の相談 O2：
+        お知らせ＋ホームの札＋全員へ案内のメール。プレゼントなし＝「受け取る」は読んだ印だけ）。本文は HTML（\n は改行） ── */
+  { id:"mail_x2_start_261125", icon:"✨", title:"XEVARION II はじまりました", date:"2026-11-25",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nNGX × ISHIDA Production の新しい XEVARION「XEVARION II」を公開しました。\n<a href=\"https://merurungx-glitch.github.io/xevarion2/\" target=\"_blank\" rel=\"noopener\" style=\"color:#3a6bff;font-weight:800;word-break:break-all\">https://merurungx-glitch.github.io/xevarion2/</a>\n\n初代のアカウントをお持ちの方は、II の「はじまり特典」で ガチャチケット30枚・30,000 XEVA・プロフィールの「初代」の印 を受け取れます。\n（II でアカウントを作り、メニューの「はじまり特典」から、初代の表示名と PIN で確かめます）\n\niPhone では Safari で開いて「共有」→「ホーム画面に追加」すると、アプリのように使えます。初代はこれまでどおり遊べます。\n\nこれからも XEVARION と XEVARION II をよろしくお願いします。" },
   /* ── ★★ 2026-11-20 ジェフ千葉 柏に 1-0 で勝利（ご指定：10,000 XEVA）── */
   { id:"mail_jef_kashiwa_261120", icon:"⚽", title:"ジェフ千葉 勝利記念 配布（10,000 XEVA）", date:"2026-11-20",
     body:"いつも XEVARION をご利用いただきありがとうございます。\n\nジェフユナイテッド市原・千葉が 柏レイソルに 1-0 で勝利 しました！\n勝利を記念して、全ユーザーに 10,000 XEVA をお贈りします。\n\n💎ジェムへの交換は XEVARION ホームの変換所から行えます。\n\nこれからも XEVARION をよろしくお願いします。",

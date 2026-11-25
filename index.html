@@ -32,6 +32,24 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-pop.css?v=1">
 <style>
+/* ★★ 2026-11-25 XEVARION II の札（もとの PARK の場所 #xlPills。10-26 から home-mate.css で隠していたのを、この札のためにもう一度出す）。
+   色は XEVARION II の空の色（水色→ラベンダー→ピンク）・大きさは前の PARK／判定シートと同じ 142×39 */
+html #xlPills{display:flex!important}
+.xl-x2{position:relative;display:flex;align-items:center;width:142px;height:39px;box-sizing:border-box;padding:3px 8px 3px 4px;gap:5px;flex:none;border-radius:99px;text-decoration:none;color:#fff;
+  border:2px solid var(--yw-line,#12203d);background:linear-gradient(110deg,#4f9dff,#8f7bff 55%,#ff86c4);isolation:isolate;
+  box-shadow:0 0 0 2px #fff,0 0 0 3.5px #8f7bff,0 3px 0 3.5px rgba(90,70,200,.25);-webkit-tap-highlight-color:transparent}
+.xl-x2 .xl-shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;z-index:-1;pointer-events:none}
+.xl-x2 .xl-shine::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.38) 50%,transparent 70%);
+  transform:translateX(-120%);animation:xlShine 3.2s ease-in-out 1.6s infinite}
+.xl-x2 .orb{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.28)}
+.xl-x2 .orb b{font:900 15px/1 "Times New Roman",serif;color:#fff;text-shadow:0 1px 0 rgba(60,40,150,.5)}
+.xl-x2 .tx{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.xl-x2 .tx b{font-size:10px;font-weight:900;letter-spacing:.04em;white-space:nowrap;text-shadow:0 1px 0 rgba(60,40,150,.55)}
+.xl-x2 .tx small{font-size:8.5px;font-weight:800;white-space:nowrap;opacity:.95}
+.xl-x2 .xl-new{position:absolute;right:-9px;top:-10px;z-index:2;font-style:normal;padding:1px 7px;font-size:9.5px;line-height:1.45;font-weight:900;border-radius:99px;
+  color:#fff;background:#ffb21e;border:1.5px solid var(--yw-line,#12203d);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.xl-x2:active{translate:0 2px}
+@media (prefers-reduced-motion:reduce){.xl-x2 .xl-shine::before{animation:none}}
 /* ★★ 2026-10-15 追加データのダウンロード（必須）の注意書き */
 .xh-upd-must{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:#fff6e6;border:2px solid #ffc861;color:#6b4300;font-size:12px;font-weight:700;line-height:1.55}
 .xh-upd-must b{display:block;font-size:13px;font-weight:900;color:#b25a00;margin-bottom:2px}
@@ -177,7 +195,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=44" defer></script>
-<script src="xeva-devnotes.js?v=23" defer></script>
+<script src="xeva-devnotes.js?v=24" defer></script>
 <script src="xeva-tour.js?v=5" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=14" defer></script>
@@ -194,7 +212,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=29"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=118" defer></script>
+<script src="xevarion.js?v=119" defer></script>
 <script src="xevarion-home.js?v=188" defer></script>
 <script src="home-lobby.js?v=7" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=36" defer></script>
@@ -714,6 +732,9 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <!-- ★★ 2026-10-15 ご指定：PARK と<b>同じ大きさ</b>のボタンを<b>真上</b>に置き「これって浮気？判定シート」（uwaki.html）。
            2つとも少し小さく・大きさをそろえた（.xl-pills の中に縦に並べる。見た目は下の <style> の 2026-10-15） -->
       <div class="xl-pills" id="xlPills">
+        <!-- ★★ 2026-11-25 ご指定「XEVARION で XEVARION II 開始のお知らせと URL」→ 第7回の相談 O2 の「ホームの札」。押すと II を新しいタブで開く
+             （#xlPills は 10-26 から隠していたので、上の <style> の 2026-11-25 でもう一度出す） -->
+        <a class="xl-x2" href="https://merurungx-glitch.github.io/xevarion2/" target="_blank" rel="noopener" aria-label="XEVARION II をひらく"><span class="xl-shine"></span><span class="orb"><b>Ⅱ</b></span><span class="tx"><b>XEVARION II</b><small>はじまりました ↗</small></span><em class="xl-new">NEW</em></a>
         <!-- ★★ 2026-10-26 ご指定「これって浮気？判定シートのボタンをホームから消して、コミュニティの XEVARION PARK の下に」→ xeva-community.js -->
         <!-- ★★ 2026-10-21 ご指定「ホームの XEVARION PARK のボタンを競馬に」→ MagiDerby の札にした。
              → さらにご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」で MagiDerby はロビーのアプリの2行目へ、
@@ -2523,6 +2544,17 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
          起動ロゴ・新ロゴ／MagiAbyss 全員ちがう性能（技も）／MagiBattle ロイヤル隊／MagiQuiz・MagiChemLex -->
     <!-- 2026-11-13：MagiChemLex に新ミニゲーム「ケミカル・ルート（反応経路スコアアタック）」／ホームの計算なしモードの切りかえは設定へ／MagiQuiz の結果詳細／
          オフライン用のデータ（Service Worker の版と一覧）を sw-list フォルダへ集約 -->
+    <!-- ★★ 2026-11-25 XEVARION II はじまりました（ご指定・第7回の相談 O2） -->
+    <div class="nm-item" data-tag="update" data-date="2026-11-25">
+      <div class="nm-date">2026<br>11.25</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">NEW</span></div>
+        <div class="nm-title">✨ XEVARION II はじまりました</div>
+        <div class="nm-txt">・NGX × ISHIDA Production の新しい XEVARION「<b>XEVARION II</b>」を公開しました。<a href="https://merurungx-glitch.github.io/xevarion2/" target="_blank" rel="noopener" style="font-weight:800">XEVARION II をひらく ↗</a><br>
+          ・初代のアカウントをお持ちの方は、II の「<b>はじまり特典</b>」で ガチャチケット30枚・30,000 XEVA・「初代」の印 を受け取れます（II のメニューの「はじまり特典」から、初代の表示名と PIN で確かめます）。<br>
+          ・iPhone では Safari で開いて「共有」→「ホーム画面に追加」すると、アプリのように使えます。初代はこれまでどおり遊べます。</div>
+      </div>
+    </div>
     <!-- ★★ 2026-11-20 ジェフ千葉 柏に 1-0 で勝利（10,000 XEVA） -->
     <div class="nm-item" data-tag="update" data-date="2026-11-20">
       <div class="nm-date">2026<br>11.20</div>

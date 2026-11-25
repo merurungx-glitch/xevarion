@@ -30,6 +30,26 @@
   }
 
   const NOTES = [
+    /* ★★ 2026-11-25 XEVARION II はじまりました（ご指定・第7回の相談 O2）。II にまだ出していない新キャラの名前は書かない */
+    {
+      id: "2026-11-25", date: "2026.11.25", title: "XEVARION II はじまりました",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>NGX × ISHIDA Production の新しい XEVARION「<b>XEVARION II</b>」を公開しました。",
+      chars: [],
+      secs: [
+        { h: "✨ XEVARION II", items: [
+          "<a href=\"https://merurungx-glitch.github.io/xevarion2/\" target=\"_blank\" rel=\"noopener\"><b>XEVARION II をひらく ↗</b></a>（https://merurungx-glitch.github.io/xevarion2/）",
+          "XEVARION を1からつくり直した新しいポータル。新しいキャラクターたちと、7本のアプリから始まります",
+          "iPhone では Safari で開いて「共有」→「ホーム画面に追加」すると、アプリのように使えます",
+        ] },
+        { h: "🎁 はじまり特典", items: [
+          "初代のアカウントをお持ちの方は、II でアカウントを作り、メニューの「はじまり特典」から初代の表示名と PIN で確かめると、<b>ガチャチケット30枚・30,000 XEVA・プロフィールの「初代」の印</b>を受け取れます（初代のアカウント1つにつき1回）",
+          "初代の XEVA・ジェム・キャラは II には引きつぎません（II はまっさらから始まります）。初代はこれまでどおり遊べます",
+        ] },
+        { h: "📧 お知らせ", items: [
+          "メールと、ホームの「XEVARION II」のボタンからも開けます",
+        ] },
+      ],
+    },
     /* ★★ 2026-11-20 ジェフ千葉 柏に勝利の配布 */
     {
       id: "2026-11-20", date: "2026.11.20", title: "ジェフ千葉 勝利記念 10,000 XEVA",
